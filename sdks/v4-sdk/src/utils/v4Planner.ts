@@ -45,7 +45,7 @@ export enum Actions {
   SWEEP = 0x14,
 
   // for wrapping/unwrapping native
-  // WRAP = 0x15,
+  WRAP = 0x15,
   UNWRAP = 0x16,
 }
 
@@ -160,6 +160,7 @@ export const V4_BASE_ACTIONS_ABI_DEFINITION: { [key in Actions]: readonly ParamT
     { name: 'currency', type: 'address' },
     { name: 'recipient', type: 'address' },
   ],
+  [Actions.WRAP]: [{ name: 'amount', type: 'uint256' }],
   [Actions.UNWRAP]: [{ name: 'amount', type: 'uint256' }],
 }
 
@@ -219,6 +220,11 @@ export class V4Planner {
   addTake(currency: Currency, recipient: string, amount?: BigNumber): V4Planner {
     const takeAmount = amount ?? FULL_DELTA_AMOUNT
     this.addAction(Actions.TAKE, [currencyAddress(currency), recipient, takeAmount])
+    return this
+  }
+
+  addWrap(amount: BigNumber): V4Planner {
+    this.addAction(Actions.WRAP, [amount])
     return this
   }
 

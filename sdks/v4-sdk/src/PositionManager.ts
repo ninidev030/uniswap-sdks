@@ -67,6 +67,16 @@ export interface MintSpecificOptions {
   migrate?: boolean
 }
 
+export interface WrapSpecificOptions {
+  /**
+   * The amount of native currency to wrap.
+   */
+  wrapAmount?: BigintIsh
+  /**
+   * The account that should receive the tokens.
+   */
+  recipient?: string
+}
 /**
  * Options for producing the calldata to add liquidity.
  */
@@ -182,8 +192,8 @@ export interface NFTPermitData {
   values: NFTPermitValues
 }
 
-export type MintOptions = CommonOptions & CommonAddLiquidityOptions & MintSpecificOptions
-export type IncreaseLiquidityOptions = CommonOptions & CommonAddLiquidityOptions & ModifyPositionSpecificOptions
+export type MintOptions = CommonOptions & CommonAddLiquidityOptions & MintSpecificOptions & WrapSpecificOptions
+export type IncreaseLiquidityOptions = CommonOptions & CommonAddLiquidityOptions & ModifyPositionSpecificOptions & WrapSpecificOptions
 
 export type AddLiquidityOptions = MintOptions | IncreaseLiquidityOptions
 
@@ -235,6 +245,11 @@ export abstract class V4PositionManager {
     const calldataList: string[] = []
     const planner = new V4PositionPlanner()
 
+    if (options.wrapAmount && isMint(options)) {
+      planner.addWrap(options.wrapAmount)
+      const weth = new NativeCurrency(position.pool.chainId).wrapped
+      planner.addSweep(weth, options.recipient)
+    }
     // Encode initialize pool.
     if (isMint(options) && shouldCreatePool(options)) {
       // No planner used here because initializePool is not supported as an Action
